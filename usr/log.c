@@ -32,7 +32,7 @@
 #include <sys/prctl.h>
 
 #include "log.h"
-
+ 
 #define LOGDBG 0
 
 #if LOGDBG
