@@ -2,11 +2,12 @@ Name:           scsi-target-utils
 Version:        1.0.24
 Release:        2%{?dist}
 Summary:        The SCSI target daemon and utility programs
-Packager:       Roi Dayan <roid@mellanox.com>
+Packager:       heyun <hey@taocloudx.com>
 Group:          System Environment/Daemons
 License:        GPLv2
-URL:            http://stgt.sourceforge.net/
 Source0:        %{name}-%{version}-%{release}.tgz
+Source1:        log4crc
+Source2:        tgtd
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:  pkgconfig libibverbs-devel librdmacm-devel libxslt libaio-devel
 %if %{defined suse_version}
@@ -18,21 +19,19 @@ Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
 %endif
-Requires: lsof sg3_utils
+Requires: lsof log4c-devel log4c
 ExcludeArch:    s390 s390x
 
 %description
 The SCSI target package contains the daemon and tools to setup a SCSI targets.
 Currently, software iSCSI targets are supported.
 
-
 %prep
 %setup -q -n %{name}-%{version}-%{release}
 
-
 %build
-%{__make} %{?_smp_mflags} ISCSI_RDMA=1
-
+# %{__make} %{?_smp_mflags} ISCSI_RDMA=1
+%{__make}
 
 %install
 %{__rm} -rf %{buildroot}
@@ -54,6 +53,9 @@ Currently, software iSCSI targets are supported.
 %{__install} -p -m 0644 doc/manpages/tgtimg.8 %{buildroot}/%{_mandir}/man8
 %{__install} -p -m 0600 conf/targets.conf %{buildroot}/etc/tgt
 
+%{__install} -d %{buildroot}%{_localstatedir}/log/tgtd
+%{__install} -p -D -m 0644 %{S:1} %{buildroot}%{_sysconfdir}/log4crc
+%{__install} -p -D -m 0644 %{S:2} %{buildroot}%{_sysconfdir}/logrotate.d/tgtd
 pushd usr
 %{__make} install DESTDIR=%{buildroot} sbindir=%{_sbindir}
 
@@ -72,10 +74,8 @@ if [ "$1" = "0" ] ; then
      /sbin/chkconfig --del tgtd
 fi
 
-
 %clean
 %{__rm} -rf %{buildroot}
-
 
 %files
 %defattr(-, root, root, -)
@@ -90,3 +90,6 @@ fi
 %{_initrddir}/tgtd
 /etc/bash_completion.d/tgt
 %attr(0600,root,root) %config(noreplace) /etc/tgt/targets.conf
+%config(noreplace) %{_sysconfdir}/logrotate.d/tgtd
+%config(noreplace) %{_sysconfdir}/log4crc
+%dir %attr(0750, root, root) %{_localstatedir}/log/tgtd

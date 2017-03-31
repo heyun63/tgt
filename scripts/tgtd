@@ -1,0 +1,7 @@
+/var/log/tgtd/tgtd_log.* {
+    weekly
+    rotate 4
+    nocopytruncate
+    compress
+    notifempty
+}
